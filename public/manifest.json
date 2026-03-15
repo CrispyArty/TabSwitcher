@@ -23,26 +23,26 @@
     "service_worker": "js/background.js",
     "type": "module"
   },
+  "side_panel": {
+    "default_path": "window.html"
+  },
   "commands": {
-    "_execute_action": {
-      "suggested_key": {
-        "default": "Ctrl+Y",
-        "mac": "Command+Y"
-      },
-      "description": "Run \"foo\" on the current page."
-    },
-    "gosu-com": {
+    "gosu-switch": {
       "suggested_key": {
         "default": "Ctrl+Q",
         "mac": "Command+Q"
       },
       "description": "Run \"foo\" on the current page."
+    },
+    "gosu-switch2": {
+      "suggested_key": {
+        "default": "Ctrl+Y",
+        "mac": "Command+Y"
+      },
+      "description": "Run \"goo\" on the current page."
     }
   },
-  "permissions": ["scripting", "webRequest", "storage", "tabs"],
+  "permissions": ["scripting", "webRequest", "storage", "tabs", "sidePanel"],
   "minimum_chrome_version": "102",
-  "omnibox": {
-    "keyword": "gosu"
-  },
   "host_permissions": ["<all_urls>"]
 }

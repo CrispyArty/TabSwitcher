@@ -1,0 +1,1 @@
+window.addEventListener("keyup",e=>{console.log("event-keyup",e.key,e),chrome.runtime.sendMessage(`ctrl-keyup-${e.key}`).then(e=>{console.log("window.close()",e)}),e.key}),setTimeout(()=>{document.querySelector("#mainButton").focus()},3e3),window.addEventListener("keydown",e=>{console.log("event-keydown",e.key,e)});
