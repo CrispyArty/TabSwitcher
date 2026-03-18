@@ -11,6 +11,10 @@ module.exports = (env) => {
     devtool: env.dev ? 'inline-source-map' : false,
     mode: env.dev ? 'development' : 'production',
     entry: {
+      listeners: {
+        import: path.join(srcDir, 'popup/listeners.ts'),
+        layer: 'extention',
+      },
       popup: {
         import: path.join(srcDir, 'popup/index.tsx'),
         layer: 'extention',

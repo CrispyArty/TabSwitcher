@@ -1,8 +1,8 @@
 // import { addKeyEvent } from './inject';
 
-chrome.action.onClicked.addListener(async (tab) => {
-  console.log('click', tab, chrome.tabs);
-});
+// chrome.action.onClicked.addListener(async (tab) => {
+//   console.log('click', tab, chrome.tabs);
+// });
 
 // chrome.commands.onCommand.addListener((command, tab) => {
 //   console.log('Command', command, tab, chrome);
@@ -21,34 +21,57 @@ chrome.action.onClicked.addListener(async (tab) => {
 //     .then(() => console.log('script injected on target frames'));
 // });
 
-async function changeTab() {
-  const window = await chrome.windows.getCurrent();
-  const tabs = await chrome.tabs.query({ windowId: window.id });
-  // tabs.sort((a, b) => b.lastAccessed - a.lastAccessed);
+// async function changeTab(tabId) {
+//   chrome.tabs.update(tabId, { active: true });
 
-  chrome.tabs.update(tabs[0].id, { active: true });
+//   return 'Changed!';
+// }
 
-  return 'Changed!';
-}
+let popupOpen = false;
 
-chrome.runtime.onMessage.addListener((event, _sender, sendResponse) => {
-  console.log('---------onMessage-event', event, sendResponse);
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.name === 'tab-change') {
+    console.log('tab-change', message, chrome.windows);
+    popupOpen = false;
 
-  if (event === 'ctrl-keyup') {
-    console.log('message1-ctrl-keyup', event, chrome.windows);
-    changeTab().then(sendResponse);
+    chrome.tabs.update(message.tabId, { active: true });
   }
 
   return true;
 });
 
-console.log('background');
-let isOpen = false;
+// console.log('background');
 
-const handler = (command: string, tab: chrome.tabs.Tab) => {
+async function getOrderTabs() {
+  const wind = await chrome.windows.getCurrent();
+  const tabs = await chrome.tabs.query({ windowId: wind.id });
+  tabs.sort((a, b) => b.lastAccessed - a.lastAccessed);
+
+  return tabs;
+}
+
+const handlerPopup = (command: string, tab: chrome.tabs.Tab) => {
   // chrome.commands.onCommand.removeListener(handler);
   // chrome.action.disable();
   console.log('chrome.action', chrome.action, chrome.commands, command, tab);
+
+  if (popupOpen) {
+    chrome.runtime.sendMessage('focus-next-tab');
+
+    getOrderTabs().then((tabs) => {
+      chrome.storage.session.set({ orderTabs: tabs });
+    });
+  }
+
+  popupOpen = true;
+
+  chrome.action
+    .openPopup({
+      windowId: tab.windowId,
+    })
+    .catch((err) => {
+      console.log('openPopup error', err);
+    });
 
   // chrome.windows.getCurrent().then((w) => {
   //   console.log('wind', w, w.focused);
@@ -68,38 +91,22 @@ const handler = (command: string, tab: chrome.tabs.Tab) => {
   //   enabled: true,
   // });
 
-  if (!isOpen) {
-    isOpen = false;
-    chrome.action
-      .openPopup({
-        windowId: tab.windowId,
-      })
-      .then(() => {
-        // chrome.action.disable();
-      })
-      .catch((err) => {
-        console.log('openPopup error', err);
-      });
-  }
-
   return true;
 };
 
-chrome.commands.onCommand.addListener(handler);
+// const handlerWindow = (command: string, tab: chrome.tabs.Tab) => {
+//   console.log('chrome.action', chrome.action, chrome.commands, command, tab);
 
-// chrome.commands.onCommand.addListener((command, tab) => {
-//   console.log('chrome.action', chrome.action, command, tab);
-//   chrome.sidePanel.open({ windowId: tab.windowId });
+//   if (!isOpen) {
+//     isOpen = true;
+//     chrome.windows.create({ focused: true, type: 'popup', url: 'window.html' }).then((res) => {
+//       console.log('res', res);
+//     });
+//   }
+//   // chrome.windows.create({ type: 'normal' });
 
-//   setTimeout(() => {
-//     chrome.sidePanel.close({ windowId: tab.windowId });
-//   }, 2000);
+//   // chrome.windows.create({ type: 'panel' });
+//   return true;
+// };
 
-//   // chrome.action.openPopup();
-// });
-
-// chrome.sidePanel
-//   .setPanelBehavior({ openPanelOnActionClick: true })
-//   .catch((error) => console.error(error));
-
-// chrome.action.openPopup()
+chrome.commands.onCommand.addListener(handlerPopup);

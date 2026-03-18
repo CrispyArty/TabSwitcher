@@ -42,7 +42,7 @@
       "description": "Run \"goo\" on the current page."
     }
   },
-  "permissions": ["scripting", "webRequest", "storage", "tabs", "sidePanel"],
-  "minimum_chrome_version": "102",
+  "permissions": ["scripting", "webRequest", "storage", "tabs", "sidePanel", "favicon"],
+  "minimum_chrome_version": "127",
   "host_permissions": ["<all_urls>"]
 }

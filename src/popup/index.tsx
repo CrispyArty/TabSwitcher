@@ -1,31 +1,71 @@
-// console.log('open');
+import { createRoot } from 'react-dom/client';
+import React, { FC, useEffect, useState } from 'react';
 
-window.addEventListener('keyup', (event) => {
-  console.log('event-keyup', event.key, event);
-  chrome.runtime.sendMessage(`ctrl-keyup-${event.key}`).then((res) => {
-    console.log('window.close()', res);
-  });
+import './global.css';
+import TabList from './TabList';
+// import * as s from './styles.module.css';
 
-  if (event.key === 'Control') {
-    // chrome.runtime.sendMessage('ctrl-keyup').then((res) => {
-    //   console.log('window.close()', res);
-    // });
-  }
-});
+const Main: FC = () => {
+  const [tabs, setTabs] = useState<Array<chrome.tabs.Tab>>([]);
+  const [focusIndex, setFocusIndex] = useState<number>(1);
 
-setTimeout(() => {
-  const el: HTMLElement = document.querySelector('#mainButton');
+  useEffect(() => {
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message === 'focus-next-tab') {
+        setFocusIndex((old) => old + 1);
+      }
+      if (message === 'focus-prev-tab') {
+        setFocusIndex((old) => old - 1);
+      }
+    });
 
-  el.focus();
-}, 3000);
+    chrome.storage.session.get(['orderTabs']).then((result) => {
+      setTabs(result.orderTabs as Array<chrome.tabs.Tab>);
+    });
 
-window.addEventListener('keydown', (event) => {
-  console.log('event-keydown', event.key, event);
-});
+    // getChromeTabs().then(setTabs);
 
-// document.addEventListener('keydown', function (e) {
-//   if ((e.ctrlKey || e.metaKey) && e.key === 'q') {
-//     e.preventDefault();
-//     console.log('Ctrl+C intercepted!');
-//   }
-// });
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'session' && changes.orderTabs) {
+        setTabs(changes.orderTabs as Array<chrome.tabs.Tab>);
+      }
+    });
+  }, []);
+
+  return (
+    <div>
+      <TabList
+        tabs={tabs}
+        focusTab={focusIndex}
+        onClick={(id) => {
+          // console.log('tabId', id);
+          chrome.runtime.sendMessage({ name: 'tab-change', tabId: id });
+        }}
+      />
+    </div>
+  );
+};
+
+const root = createRoot(document.getElementById('root')!);
+
+root.render(
+  <React.StrictMode>
+    <Main />
+  </React.StrictMode>,
+);
+
+// if (chrome.storage) {
+//   chrome.storage.local.get().then((settings: Settings) => {
+//     root.render(
+//       <React.StrictMode>
+//         <Page settings={settings} />
+//       </React.StrictMode>,
+//     );
+//   });
+// } else {
+//   root.render(
+//     <React.StrictMode>
+//       <Page settings={{ hide_on_load: true }} />
+//     </React.StrictMode>,
+//   );
+// }
