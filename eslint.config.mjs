@@ -55,6 +55,9 @@ export default defineConfig([
         },
       ],
     },
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
+    },
     settings: {
       react: {
         version: '18',

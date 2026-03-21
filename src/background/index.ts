@@ -1,112 +1,140 @@
-// import { addKeyEvent } from './inject';
+let isOpen,
+  fastCtrl = false;
 
-// chrome.action.onClicked.addListener(async (tab) => {
-//   console.log('click', tab, chrome.tabs);
-// });
+function cleanUp() {
+  console.log('cleanUp');
+  isOpen = fastCtrl = false;
+  chrome.runtime.onMessage.removeListener(fastCtrlUpHandler);
+}
 
-// chrome.commands.onCommand.addListener((command, tab) => {
-//   console.log('Command', command, tab, chrome);
+chrome.runtime.onConnect.addListener((port) => {
+  let reload = false;
 
-//   // chrome.windows.create({ type: 'normal' });
-//   // chrome.windows.create({ focused: true, type: 'popup', url: 'window.html' }).then((res) => {
-//   //   console.log('res', res);
-//   // });
-//   // chrome.windows.create({ type: 'panel' });
-
-//   chrome.scripting
-//     .executeScript({
-//       target: { tabId: tab.id },
-//       func: addKeyEvent,
-//     })
-//     .then(() => console.log('script injected on target frames'));
-// });
-
-// async function changeTab(tabId) {
-//   chrome.tabs.update(tabId, { active: true });
-
-//   return 'Changed!';
-// }
-
-let popupOpen = false;
-
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.name === 'tab-change') {
-    console.log('tab-change', message, chrome.windows);
-    popupOpen = false;
-
-    chrome.tabs.update(message.tabId, { active: true });
+  if (port.name === 'popup-connection') {
+    port.onMessage.addListener((message) => {
+      if (message === 'reload') {
+        reload = true;
+      }
+    });
+    port.onDisconnect.addListener(() => {
+      if (!reload) {
+        cleanUp();
+      }
+    });
   }
-
-  return true;
 });
 
-// console.log('background');
+chrome.runtime.onMessage.addListener((message) => {
+  console.log('----log', message);
 
-async function getOrderTabs() {
-  const wind = await chrome.windows.getCurrent();
-  const tabs = await chrome.tabs.query({ windowId: wind.id });
+  if (message.name === 'tab-change') {
+    chrome.tabs.update(message.tabId, { active: true });
+    cleanUp();
+  }
+});
+
+async function getOrderTabs(windowId: number) {
+  const tabs = await chrome.tabs.query({ windowId });
   tabs.sort((a, b) => b.lastAccessed - a.lastAccessed);
 
   return tabs;
 }
 
-const handlerPopup = (command: string, tab: chrome.tabs.Tab) => {
-  // chrome.commands.onCommand.removeListener(handler);
-  // chrome.action.disable();
-  console.log('chrome.action', chrome.action, chrome.commands, command, tab);
+const fastCtrlUpHandler = (message) => {
+  if (message.name === 'inject-ctrl-keyup') {
+    fastCtrl = true;
+    console.log(message.name, message.key);
+  }
+};
 
-  if (popupOpen) {
-    chrome.runtime.sendMessage('focus-next-tab');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handlerPopup = (_command: string, tab: chrome.tabs.Tab) => {
+  // chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  //   console.log('--tabs', tabs);
+  // });
 
-    getOrderTabs().then((tabs) => {
+  if (!isOpen) {
+    // Listen for fast ctrl keyup event from injected script
+    chrome.runtime.onMessage.addListener(fastCtrlUpHandler);
+
+    getOrderTabs(tab.windowId).then((tabs) => {
       chrome.storage.session.set({ orderTabs: tabs });
     });
+
+    chrome.action
+      .openPopup({
+        windowId: tab.windowId,
+      })
+      .then(() => {
+        if (fastCtrl) {
+          console.log('fastCtrl', fastCtrl);
+          // Notify popup on creation that ctrl already been released
+          chrome.runtime.sendMessage('fast-ctrlup').catch(() => {});
+        }
+      });
+  } else {
+    // chrome.windows.update(tab.windowId, { focused: true }).then(() => {
+    //   chrome.action.setPopup({ popup: 'popup.html' }).then(() => {
+    //     chrome.action.openPopup({ windowId: tab.windowId });
+    //   });
+    // });
+    //
+    // chrome.runtime.sendMessage('closePopup');
   }
 
-  popupOpen = true;
+  isOpen = true;
 
-  chrome.action
-    .openPopup({
-      windowId: tab.windowId,
-    })
-    .catch((err) => {
-      console.log('openPopup error', err);
-    });
-
-  // chrome.windows.getCurrent().then((w) => {
-  //   console.log('wind', w, w.focused);
-  // });
-
-  // console.log('windowId', tab.windowId, chrome.windows);
-
-  // chrome.windows.update(tab.windowId, { focused: true }).then(() => {
-  //   console.log('openPopup()');
-  // });
-
-  // chrome.sidePanel.open({ windowId: tab.windowId });
-
-  // chrome.sidePanel.setOptions({
-  //   tabId: tab.id,
-  //   path: 'window.html',
-  //   enabled: true,
-  // });
+  // Send event to popup on multiple presses
+  chrome.runtime.sendMessage('focus-next-tab').catch(() => {});
 
   return true;
 };
 
-// const handlerWindow = (command: string, tab: chrome.tabs.Tab) => {
-//   console.log('chrome.action', chrome.action, chrome.commands, command, tab);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const handlerWindow = (_command: string, tab: chrome.tabs.Tab) => {
+  if (!isOpen) {
+    // Listen for fast ctrl keyup event from injected script
+    chrome.runtime.onMessage.addListener(fastCtrlUpHandler);
 
-//   if (!isOpen) {
-//     isOpen = true;
-//     chrome.windows.create({ focused: true, type: 'popup', url: 'window.html' }).then((res) => {
-//       console.log('res', res);
-//     });
-//   }
-//   // chrome.windows.create({ type: 'normal' });
+    getOrderTabs(tab.windowId).then((tabs) => {
+      chrome.storage.session.set({ orderTabs: tabs });
+    });
 
-//   // chrome.windows.create({ type: 'panel' });
-//   return true;
-// };
+    chrome.windows.get(tab.windowId).then((wind) => {
+      const width = 500;
+      const height = 600;
+      const left = Math.round(wind.width / 2 - width / 2) + wind.left;
+      const top = wind.top + 60;
+
+      chrome.windows
+        .create({
+          left: left,
+          top: top,
+          width: width,
+          height: height,
+          focused: true,
+          type: 'popup',
+          url: 'popup.html',
+        })
+        .then((win) => {
+          console.log('open-window', win);
+
+          if (fastCtrl) {
+            console.log('fastCtrl', fastCtrl);
+            // Notify window on creation that ctrl already been released
+            chrome.runtime.sendMessage('fast-ctrlup').catch(() => {});
+          }
+        });
+    });
+  }
+
+  // Send event to popup on multiple presses
+  chrome.runtime.sendMessage('focus-next-tab').catch(() => {});
+
+  isOpen = true;
+
+  return true;
+};
 
 chrome.commands.onCommand.addListener(handlerPopup);
+// chrome.commands.onCommand.addListener(handlerWindow);

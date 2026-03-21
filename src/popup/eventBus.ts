@@ -6,14 +6,25 @@ export default class EventBus {
   #eventsMap: Map<string, Array<AppEventPayload>> = new Map();
   #listeners: Map<string, Array<Callback>> = new Map();
 
-  emit(name: string, payload?: AppEventPayload) {
+  emit(name: string, payload?: AppEventPayload): void {
     this.#addEvent(name, payload);
     this.#runListeners(name);
   }
 
-  on(name: string, callback: Callback) {
+  on(name: string, callback: Callback): void {
     this.#addListener(name, callback);
     this.#runListeners(name);
+  }
+
+  off(name: string, callback: Callback): void {
+    if (!this.#listeners.has(name)) {
+      return;
+    }
+
+    this.#listeners.set(
+      name,
+      this.#listeners.get(name).filter((cb) => cb !== callback),
+    );
   }
 
   #addEvent(name: string, payload: AppEventPayload) {

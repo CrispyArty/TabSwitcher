@@ -1,8 +1,12 @@
 @import './vars.css';
 
+html {
+  background: transparent;
+}
+
 body {
-  margin: 4px;
-  padding: 0;
+  margin: 0;
+  padding: 4px;
   width: 400px;
   color: var(--darkPrimary);
   font-size: 16px;
