@@ -56,6 +56,14 @@ const fastCtrlUpHandler = (message: EventMessage) => {
 const commandMap = {
   next: (tab: chrome.tabs.Tab) => {
     if (!isOpen) {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => {
+          console.log('inject');
+        },
+        injectImmediately: true,
+      });
+
       // Listen for fast ctrl keyup event from injected script
       chrome.runtime.onMessage.addListener(fastCtrlUpHandler);
 

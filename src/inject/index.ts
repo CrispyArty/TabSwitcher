@@ -3,6 +3,7 @@ window.addEventListener('keyup', (event) => {
     try {
       chrome.runtime.sendMessage({ name: 'inject-ctrl-keyup', key: event.key });
     } catch (e) {
+      // eslint-disable-next-line no-console
       console.log(e);
     }
   }

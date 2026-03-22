@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import clsx from 'clsx';
 import * as s from './styles.module.css';
 
@@ -11,9 +11,19 @@ type Props = {
 const TabList: FC<Props> = ({ tabs, focusTab, onClick }) => {
   const size = 16; // desired size, e.g., 16, 32, 64
 
+  const focusItemRef = useRef<HTMLLIElement>(null);
+
   const getIconUrl = (url: string) => {
     return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url)}&size=${size}`;
   };
+
+  useEffect(() => {
+    if (focusItemRef.current) {
+      focusItemRef.current.scrollIntoView({
+        block: 'nearest',
+      });
+    }
+  }, [focusTab]);
 
   return (
     <ul className={s.tabs}>
@@ -23,6 +33,7 @@ const TabList: FC<Props> = ({ tabs, focusTab, onClick }) => {
         return (
           <li
             key={id}
+            ref={index === focusTab ? focusItemRef : null}
             className={clsx(s.tab, index === focusTab && s.focused)}
             onClick={() => {
               onClick(id);

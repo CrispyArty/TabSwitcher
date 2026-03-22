@@ -21,6 +21,7 @@ const Main: FC<Props> = ({ tabs }) => {
   const saveDocState = () => {
     window.sessionStorage.setItem('snapshot', document.body.innerHTML);
     window.sessionStorage.setItem('popupHeight', document.body.scrollHeight + 'px');
+    window.sessionStorage.setItem('scrollY', window.scrollY.toString());
   };
 
   const resolveIndex = (index: number) => {
@@ -84,6 +85,7 @@ const Main: FC<Props> = ({ tabs }) => {
 };
 
 const snapshot = sessionStorage.getItem('snapshot');
+const scrollY = sessionStorage.getItem('scrollY');
 
 chrome.storage.session.get(['orderTabs']).then((result) => {
   const tabs = (result.orderTabs || []) as Array<chrome.tabs.Tab>;
@@ -92,6 +94,7 @@ chrome.storage.session.get(['orderTabs']).then((result) => {
     document.body.innerHTML = snapshot;
     sessionStorage.removeItem('snapshot');
 
+    // scrollY && window.scrollTo({ top: parseInt(scrollY) });
     // hydrateRoot(
     //   document.getElementById('root'),
     //   <React.StrictMode>
