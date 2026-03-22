@@ -11,14 +11,18 @@ module.exports = (env) => {
     devtool: env.dev ? 'inline-source-map' : false,
     mode: env.dev ? 'development' : 'production',
     entry: {
-      // popup: {
-      //   import: path.join(srcDir, 'popup/index.tsx'),
-      //   layer: 'extention',
-      // },
-      window: {
-        import: path.join(srcDir, 'window/index.ts'),
+      listeners: {
+        import: path.join(srcDir, 'popup/listeners.ts'),
         layer: 'extention',
       },
+      popup: {
+        import: path.join(srcDir, 'popup/index.tsx'),
+        layer: 'extention',
+      },
+      // window: {
+      //   import: path.join(srcDir, 'window/index.ts'),
+      //   layer: 'extention',
+      // },
       background: {
         import: path.join(srcDir, 'background/index.ts'),
         layer: 'background',

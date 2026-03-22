@@ -3,11 +3,7 @@
     "target": "es6",
     "module": "es2015",
     "moduleResolution": "node",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./src/",
@@ -24,7 +20,7 @@
     "isolatedModules": true,
     "jsx": "react",
     "plugins": [
-      { 
+      {
         "name": "typescript-plugin-css-modules",
         "options": {
           "namedExports": true
@@ -32,8 +28,6 @@
       }
     ]
   },
-  "include": [
-    "src/**/*",
-  ],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

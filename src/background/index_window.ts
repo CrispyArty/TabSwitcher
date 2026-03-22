@@ -4,7 +4,6 @@ let isOpen = false;
 let fastCtrl = false;
 
 function cleanUp() {
-  // console.log('cleanUp');
   isOpen = fastCtrl = false;
   chrome.runtime.onMessage.removeListener(fastCtrlUpHandler);
 }
@@ -31,8 +30,6 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 chrome.runtime.onMessage.addListener((message: EventMessage) => {
-  // console.log('----log', message);
-
   if (message.name === 'tab-change') {
     chrome.tabs.update(message.tabId as number, { active: true });
     cleanUp();
@@ -49,21 +46,12 @@ async function getOrderTabs(windowId: number) {
 const fastCtrlUpHandler = (message: EventMessage) => {
   if (message.name === 'inject-ctrl-keyup') {
     fastCtrl = true;
-    // console.log(message.name, message.key);
   }
 };
 
 const commandMap = {
   next: (tab: chrome.tabs.Tab) => {
     if (!isOpen) {
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: () => {
-          console.log('inject');
-        },
-        injectImmediately: true,
-      });
-
       // Listen for fast ctrl keyup event from injected script
       chrome.runtime.onMessage.addListener(fastCtrlUpHandler);
 
@@ -71,11 +59,28 @@ const commandMap = {
         chrome.storage.session.set({ orderTabs: tabs });
       });
 
-      chrome.action.openPopup({ windowId: tab.windowId }).then(() => {
-        if (fastCtrl) {
-          // Notify popup on creation that ctrl already been released
-          sendMessage({ name: 'fast-ctrlup' }).catch(() => {});
-        }
+      chrome.windows.get(tab.windowId).then((wind) => {
+        const width = 500;
+        const height = 600;
+        const left = Math.round(wind.width / 2 - width / 2) + wind.left;
+        const top = wind.top + 60;
+
+        chrome.windows
+          .create({
+            left: left,
+            top: top,
+            width: width,
+            height: height,
+            focused: true,
+            type: 'popup',
+            url: 'popup.html',
+          })
+          .then(() => {
+            if (fastCtrl) {
+              // Notify window on creation that ctrl already been released
+              sendMessage({ name: 'fast-ctrlup' }).catch(() => {});
+            }
+          });
       });
     } else {
       // Send event to popup on multiple presses

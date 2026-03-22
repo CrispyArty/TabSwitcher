@@ -2,19 +2,23 @@
   "name": "chrome-extension-tab-switcher",
   "version": "1.0.0",
   "description": "Chrome extension for tab switching in order of use",
+  "license": "UNLICENSED",
   "scripts": {
     "watch": "webpack --config webpack.config.js --watch --env dev",
     "build": "webpack --config webpack.config.js",
     "clean": "rimraf dist",
     "format:check": "prettier -c .",
-    "style": "prettier --write \"src/**/*.{ts,tsx}\""
+    "style": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "test": "jest --config=jest.config.ts"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "clsx": "^2.1.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
-    "@types/chrome": "0.0.158",
+    "@jest/globals": "^30.3.0",
+    "@types/chrome": "^0.1.37",
     "@types/react": "^18.0.29",
     "@types/react-dom": "^18.0.11",
     "copy-webpack-plugin": "^9.0.1",
@@ -27,6 +31,8 @@
     "eslint-plugin-react": "^7.37.5",
     "glob": "^7.1.6",
     "globals": "^17.4.0",
+    "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.3.0",
     "mini-css-extract-plugin": "^2.10.1",
     "postcss": "^8.5.8",
     "postcss-loader": "^8.2.1",
@@ -34,6 +40,7 @@
     "prettier": "^3.8.1",
     "rimraf": "^3.0.2 ",
     "style-loader": "^4.0.0",
+    "ts-jest": "^29.4.6",
     "ts-loader": "^9.5.4",
     "typescript": "^5.0.4",
     "typescript-eslint": "^8.57.0",
