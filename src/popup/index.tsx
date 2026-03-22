@@ -94,7 +94,7 @@ chrome.storage.session.get(['orderTabs']).then((result) => {
     document.body.innerHTML = snapshot;
     sessionStorage.removeItem('snapshot');
 
-    // scrollY && window.scrollTo({ top: parseInt(scrollY) });
+    scrollY && window.scrollTo({ top: parseInt(scrollY) });
     // hydrateRoot(
     //   document.getElementById('root'),
     //   <React.StrictMode>
