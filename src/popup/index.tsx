@@ -11,7 +11,9 @@ type Props = {
 
 const Main: FC<Props> = ({ tabs }) => {
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const [focusIndex] = useState<number>(parseInt(urlSearchParams.get('tab_index') || '1'));
+  const [focusIndex, setFocusIndex] = useState<number>(
+    parseInt(urlSearchParams.get('tab_index') || '1'),
+  );
   const focusIndexRef = useRef<number>(focusIndex);
 
   useEffect(() => {
@@ -60,11 +62,17 @@ const Main: FC<Props> = ({ tabs }) => {
     window.close();
   };
 
+  const setInitialIndex = ({ index }) => {
+    setFocusIndex(index);
+  };
+
   useEffect(() => {
+    window.AppEventBus.on('initial-tab-index', setInitialIndex);
     window.AppEventBus.on('control-keyup', ctrlKeyupHandler);
     chrome.runtime.onMessage.addListener(extShortcutPressHandler);
 
     return () => {
+      window.AppEventBus.off('initial-tab-index', setInitialIndex);
       window.AppEventBus.off('control-keyup', ctrlKeyupHandler);
       chrome.runtime.onMessage.removeListener(extShortcutPressHandler);
     };

@@ -20,8 +20,18 @@ document.addEventListener('keyup', (event) => {
 });
 
 chrome.runtime.onMessage.addListener((message: EventMessage) => {
-  if (message.name === 'fast-ctrlup') {
-    window.AppEventBus.emit('control-keyup');
+  // if (message.name === 'fast-ctrlup') {
+  //   window.AppEventBus.emit('control-keyup');
+  // }
+
+  if (message.name === 'initial-tab-index') {
+    // console.log('addListener', message);
+
+    window.AppEventBus.emit('initial-tab-index', { index: message.index });
+  }
+
+  if (message.name === 'close-popup') {
+    window.close();
   }
 });
 
