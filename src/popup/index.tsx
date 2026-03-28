@@ -1,9 +1,9 @@
 import { createRoot } from 'react-dom/client';
 import React, { FC, useEffect, useRef, useState } from 'react';
-
-import './global.css';
 import TabList from './TabList';
 import { EventMessage } from './types';
+
+import './global.css';
 
 type Props = {
   tabs: Array<chrome.tabs.Tab>;
@@ -57,7 +57,7 @@ const Main: FC<Props> = ({ tabs }) => {
   };
 
   const ctrlKeyupHandler = () => {
-    chrome.runtime.sendMessage({ name: 'tab-change', tabId: tabs[focusIndex].id });
+    chrome.runtime.sendMessage({ name: 'tab-change', tabId: tabs[focusIndexRef.current].id });
 
     window.close();
   };
@@ -79,16 +79,14 @@ const Main: FC<Props> = ({ tabs }) => {
   }, []);
 
   return (
-    <div>
-      <TabList
-        tabs={tabs}
-        focusTab={focusIndex}
-        onClick={(id) => {
-          chrome.runtime.sendMessage({ name: 'tab-change', tabId: id });
-          window.close();
-        }}
-      />
-    </div>
+    <TabList
+      tabs={tabs}
+      focusTab={focusIndex}
+      onClick={(id) => {
+        chrome.runtime.sendMessage({ name: 'tab-change', tabId: id });
+        window.close();
+      }}
+    />
   );
 };
 

@@ -13,7 +13,6 @@ window.AppEventBus = new EventBus();
 })();
 
 document.addEventListener('keyup', (event) => {
-  chrome.runtime.sendMessage({ name: 'document-popup-keyup', key: event.key });
   if (event.key === 'Control' || event.key === 'Meta') {
     window.AppEventBus.emit('control-keyup');
   }
@@ -25,8 +24,6 @@ chrome.runtime.onMessage.addListener((message: EventMessage) => {
   // }
 
   if (message.name === 'initial-tab-index') {
-    // console.log('addListener', message);
-
     window.AppEventBus.emit('initial-tab-index', { index: message.index });
   }
 

@@ -4,3 +4,4 @@
 // }
 
 declare module '*.module.css';
+declare const DEV: boolean;

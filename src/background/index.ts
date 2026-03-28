@@ -16,8 +16,10 @@ function cleanUp() {
   isOpen = false;
   windowId = undefined;
   _tabs = [];
-  openPopupDelayId = undefined;
   initialTabIndex = 1;
+  clearTimeout(openPopupDelayId);
+  openPopupDelayId = undefined;
+  chrome.storage.session.set({ orderTabs: [] });
   chrome.runtime.onMessage.removeListener(fastCtrlUpHandler);
   sendMessage({ name: 'close-popup' }).catch(() => {});
 }
@@ -44,8 +46,13 @@ function changeTab(tabId: number) {
   cleanUp();
 }
 
+if (DEV) {
+  chrome.runtime.onMessage.addListener((message: EventMessage) => {
+    console.log('----log event', message);
+  });
+}
+
 chrome.runtime.onMessage.addListener((message: EventMessage) => {
-  // console.log('----log', message);
   if (message.name === 'tab-change') {
     changeTab(message.tabId as number);
   }
@@ -86,9 +93,14 @@ const commandMap = {
       });
 
       openPopupDelayId = setTimeout(() => {
-        chrome.action.openPopup({ windowId: windowId }).then(() => {
-          sendMessage({ name: 'initial-tab-index', index: initialTabIndex });
-        });
+        chrome.action
+          .openPopup({ windowId: windowId })
+          .then(() => {
+            sendMessage({ name: 'initial-tab-index', index: initialTabIndex });
+          })
+          .catch((error) => {
+            console.error('error', error, typeof error);
+          });
       }, 100);
     } else {
       // If multiple presses happened before popup open, popup will open with correct focused tab

@@ -7,9 +7,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // const explain = process.argv.includes("--explain");
 
 module.exports = (env) => {
+  const isDev = !!env.dev;
+
   return {
-    devtool: env.dev ? 'inline-source-map' : false,
-    mode: env.dev ? 'development' : 'production',
+    devtool: isDev ? 'inline-source-map' : false,
+    mode: isDev ? 'development' : 'production',
     entry: {
       listeners: {
         import: path.join(srcDir, 'popup/listeners.ts'),
@@ -93,6 +95,9 @@ module.exports = (env) => {
       }),
       new MiniCssExtractPlugin({
         filename: 'css/[name].css',
+      }),
+      new webpack.DefinePlugin({
+        DEV: JSON.stringify(isDev),
       }),
     ],
   };
