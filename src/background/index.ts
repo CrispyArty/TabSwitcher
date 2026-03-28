@@ -48,6 +48,7 @@ function changeTab(tabId: number) {
 
 if (DEV) {
   chrome.runtime.onMessage.addListener((message: EventMessage) => {
+    // eslint-disable-next-line no-console
     console.log('----log event', message);
   });
 }
@@ -98,9 +99,7 @@ const commandMap = {
           .then(() => {
             sendMessage({ name: 'initial-tab-index', index: initialTabIndex });
           })
-          .catch((error) => {
-            console.error('error', error, typeof error);
-          });
+          .catch(() => {});
       }, 100);
     } else {
       // If multiple presses happened before popup open, popup will open with correct focused tab
